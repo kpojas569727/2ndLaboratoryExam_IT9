@@ -1,38 +1,62 @@
 <?php
-$conn = new mysqli("localhost", "root", "", "parking_db");
+include "db.php";
 
-if (isset($_POST['save'])) {
-    $plate = $_POST['plate_number'];
-    $type = $_POST['vehicle_type'];
-    $slot = $_POST['slot_number'];
-    $paid = isset($_POST['is_paid']) ? 1 : 0;
-    $rate = $_POST['hourly_rate'];
+if (isset($_POST['add'])) {
+    $plate = mysqli_real_escape_string($conn, $_POST['plate_number']);
+    $type = mysqli_real_escape_string($conn, $_POST['vehicle_type']);
+    $slot = mysqli_real_escape_string($conn, $_POST['slot_number']);
+    $rate = mysqli_real_escape_string($conn, $_POST['hourly_rate']);
 
-    $stmt = $conn->prepare("INSERT INTO reservations (plate_number, vehicle_type, slot_number, is_paid, hourly_rate) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssid", $plate, $type, $slot, $paid, $rate);
-    $stmt->execute();
-    header("Location: index.php");
-    exit;
+    if (isset($_POST['is_paid'])) {
+        $paid = 1;
+    } else {
+        $paid = 0;
+    }
+
+    if ($plate == "" || $type == "" || $slot == "" || $rate == "") {
+        echo "<script>alert('Please input on all fields')</script>";
+    } else {
+        $sql = "INSERT INTO reservations (plate_number, vehicle_type, slot_number, is_paid, hourly_rate)
+                VALUES ('$plate', '$type', '$slot', '$paid', '$rate')";
+        mysqli_query($conn, $sql);
+        header("location: index.php");
+        exit();
+    }
 }
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Add Reservation</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<title>Add Reservation</title>
 </head>
-<div class="container mt-3">
 <body>
-    <h1>Add Reservation</h1>
-    <form method="post">
-        <p>Plate Number: <input type="text" name="plate_number" required></p>
-        <p>Vehicle Type: <input type="text" name="vehicle_type" required></p>
-        <p>Slot Number: <input type="text" name="slot_number" required></p>
-        <p>Hourly Rate: <input type="number" step="0.01" name="hourly_rate" required></p>
-        <p>Paid: <input type="checkbox" name="is_paid"></p>
-        <button type="submit" name="save">Save</button>
-        <a href="index.php">Back</a>
+
+<div class="container mt-5" style="max-width: 500px;">
+    <form method="POST">
+        <h2>Add Reservation</h2>
+
+        <label>Plate Number</label>
+        <input type="text" name="plate_number" class="form-control mb-3">
+
+        <label>Vehicle Type</label>
+        <input type="text" name="vehicle_type" class="form-control mb-3">
+
+        <label>Slot Number</label>
+        <input type="text" name="slot_number" class="form-control mb-3">
+
+        <label>Hourly Rate</label>
+        <input type="number" step="0.01" name="hourly_rate" class="form-control mb-3">
+
+        <input type="checkbox" name="is_paid"> Paid
+        <br><br>
+
+        <button type="submit" class="btn btn-primary" name="add">Add</button>
+        <a class="btn btn-danger" href="index.php">Cancel</a>
     </form>
 </div>
+
 </body>
 </html>

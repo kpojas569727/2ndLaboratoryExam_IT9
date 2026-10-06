@@ -1,46 +1,68 @@
 <?php
-$conn = new mysqli("localhost", "root", "", "parking_db");
+include "db.php";
+
+$id = (int)$_GET['id'];
+
+$query = mysqli_query($conn, "SELECT * FROM reservations WHERE reservation_id = $id");
+$get = mysqli_fetch_assoc($query);
 
 if (isset($_POST['update'])) {
-    $id = $_POST['reservation_id'];
-    $plate = $_POST['plate_number'];
-    $type = $_POST['vehicle_type'];
-    $slot = $_POST['slot_number'];
-    $paid = isset($_POST['is_paid']) ? 1 : 0;
-    $rate = $_POST['hourly_rate'];
+    $plate = mysqli_real_escape_string($conn, $_POST['plate_number']);
+    $type = mysqli_real_escape_string($conn, $_POST['vehicle_type']);
+    $slot = mysqli_real_escape_string($conn, $_POST['slot_number']);
+    $rate = mysqli_real_escape_string($conn, $_POST['hourly_rate']);
 
-    $stmt = $conn->prepare("UPDATE reservations SET plate_number=?, vehicle_type=?, slot_number=?, is_paid=?, hourly_rate=? WHERE reservation_id=?");
-    $stmt->bind_param("sssidi", $plate, $type, $slot, $paid, $rate, $id);
-    $stmt->execute();
-    header("Location: index.php");
-    exit;
+    if (isset($_POST['is_paid'])) {
+        $paid = 1;
+    } else {
+        $paid = 0;
+    }
+
+    if ($plate == "" || $type == "" || $slot == "" || $rate == "") {
+        echo "<script>alert('Please input on all fields')</script>";
+    } else {
+        $sql = "UPDATE reservations
+                SET plate_number='$plate', vehicle_type='$type', slot_number='$slot', is_paid='$paid', hourly_rate='$rate'
+                WHERE reservation_id='$id'";
+        mysqli_query($conn, $sql);
+        header("location: index.php");
+        exit();
+    }
 }
-
-$id = $_GET['id'];
-$stmt = $conn->prepare("SELECT * FROM reservations WHERE reservation_id=?");
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$row = $stmt->get_result()->fetch_assoc();
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Edit Reservation</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<title>Edit Reservation</title>
 </head>
 <body>
-    <div class="container mt-3">
-    <h1>Edit Reservation</h1>
-    <form method="post">
-        <input type="hidden" name="reservation_id" value="<?php echo $row['reservation_id']; ?>">
-        <p>Plate Number: <input type="text" name="plate_number" value="<?php echo $row['plate_number']; ?>" required></p>
-        <p>Vehicle Type: <input type="text" name="vehicle_type" value="<?php echo $row['vehicle_type']; ?>" required></p>
-        <p>Slot Number: <input type="text" name="slot_number" value="<?php echo $row['slot_number']; ?>" required></p>
-        <p>Hourly Rate: <input type="number" step="0.01" name="hourly_rate" value="<?php echo $row['hourly_rate']; ?>" required></p>
-        <p>Paid: <input type="checkbox" name="is_paid" <?php if ($row['is_paid']) echo 'checked'; ?>></p>
-        <button type="submit" name="update">Update</button>
-        <a href="index.php">Back</a>
+
+<div class="container mt-5" style="max-width: 500px;">
+    <form method="POST">
+        <h2>Edit Reservation (#<?php echo $id ?>)</h2>
+
+        <label>Plate Number</label>
+        <input type="text" name="plate_number" class="form-control mb-3" value="<?php echo $get['plate_number'] ?>">
+
+        <label>Vehicle Type</label>
+        <input type="text" name="vehicle_type" class="form-control mb-3" value="<?php echo $get['vehicle_type'] ?>">
+
+        <label>Slot Number</label>
+        <input type="text" name="slot_number" class="form-control mb-3" value="<?php echo $get['slot_number'] ?>">
+
+        <label>Hourly Rate</label>
+        <input type="number" step="0.01" name="hourly_rate" class="form-control mb-3" value="<?php echo $get['hourly_rate'] ?>">
+
+        <input type="checkbox" name="is_paid" <?php if ($get['is_paid'] == 1) { echo "checked"; } ?>> Paid
+        <br><br>
+
+        <button type="submit" class="btn btn-primary" name="update">Update</button>
+        <a class="btn btn-danger" href="index.php">Cancel</a>
     </form>
 </div>
+
 </body>
 </html>
