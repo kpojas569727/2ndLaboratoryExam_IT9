@@ -24,12 +24,12 @@ $result = $conn->query("SELECT * FROM reservations");
     <a href="reservation_add.php" class="text-decoration-none link-success position-fixed top-0 end-0 m-3">Add Reservation</a>
     <table class="table mb-4" border="1">
         <tr>
-            <th>reservation_id</th>
-            <th>plate_number</th>
-            <th>vehicle_type</th>
-            <th>slot_number</th>
-            <th>is_paid</th>
-            <th>hourly_rate</th>
+            <th>Reservation ID</th>
+            <th>Plate Number</th>
+            <th>Vehicle Type</th>
+            <th>Slot Number</th>
+            <th>Paid</th>
+            <th>Rate</th>
             <th>Actions</th>
         </tr>
         <?php while ($row = $result->fetch_assoc()) { ?>
